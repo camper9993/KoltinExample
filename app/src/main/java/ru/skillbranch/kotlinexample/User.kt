@@ -24,7 +24,7 @@ class User private constructor(
 
     private var phone : String? = null
         set(value) {
-            field = value?.replace("[^+\\d].".toRegex(), replacement = "")
+            field = value?.replace("[ ()-]+".toRegex(), replacement = "")
         }
 
     private var _login : String? = null
@@ -59,12 +59,12 @@ class User private constructor(
         firstName: String,
         lastName: String?,
         rawPhone: String
-    ) : this(firstName, lastName, rawPhone, meta = mapOf("auth" to "sms")) {
+    ) : this(firstName, lastName, rawPhone = rawPhone, meta = mapOf("auth" to "sms")) {
         println("Secondary phone constructor")
         val code = generateAccessCode()
-        passwordHash = encrypt(code)
         accessCode = code
-        sendAccessCodeToUser(rawPhone, code)
+        passwordHash = encrypt(accessCode!!)
+        sendAccessCodeToUser(rawPhone, accessCode!!)
     }
 
 
@@ -72,8 +72,8 @@ class User private constructor(
     init {
         println("First init block, primary constructor was called")
 
-        check(!firstName.isBlank()) {"First name can't be empty"}
-        check(!email.isNullOrBlank() || !rawPhone.isNullOrBlank()) {"Email or phone can't be empty"}
+        require(!firstName.isBlank()) {"First name can't be empty"}
+        require(!email.isNullOrBlank() || !rawPhone.isNullOrBlank()) {"Email or phone can't be empty"}
 
         phone = rawPhone
         login = email ?: phone!!
@@ -104,8 +104,8 @@ class User private constructor(
 
     private fun encrypt(password: String): String = password.md5()
 
-    private fun generateAccessCode(): String {
-        val possible = "1234567890"
+    public fun generateAccessCode(): String {
+        val possible = "1234567890QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm"
         return StringBuilder().apply {
             repeat(6) {
                 (possible.indices).random().also {
