@@ -20,8 +20,10 @@ object UserHolder  {
     fun registerUserByPhone(fullName: String, rawPhone: String) : User {
         if (rawPhone.trimPhone().matches("\\+\\d{11}".toRegex()))
             return User.makeUser(fullName, null, null, rawPhone.trimPhone()).also {
-                require(!map.contains(it.login)) { println("A user with this phone already exists")}
-                map[it.login] = it
+                if (map.contains(it.login))
+                    throw IllegalArgumentException("A user with this phone already exists")
+                else
+                    map[it.login] = it
             }
         else
             throw IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
